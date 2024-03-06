@@ -3,5 +3,7 @@ I am currently conducting research on model checking using z3. Currently in the 
 My current problem is as follows: 
 
 process Inc: while true do if x < 200 then x := x + 1 od
+
 process Inc: while true do if x > 0 then x := x - 1 od
+
 process Inc: while true do if x = 200 then x := 0 od
