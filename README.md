@@ -1,7 +1,10 @@
 I am currently conducting research on model checking using z3. Currently in the process of encoding a simple problem and deriving reusable code that can be implemented into more broad problems.
 
+
 INSTALL Z3 WITH
-''' pip install z3-solver '''
+'''' 
+pip install z3-solver 
+''''
 
 
 My current problem is as follows: 
