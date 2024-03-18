@@ -3,11 +3,11 @@ I am currently conducting research on model checking using z3. Currently in the 
 
 INSTALL Z3 WITH
 
-'''' 
+````
 
 pip install z3-solver 
 
-''''
+````
 
 
 My current problem is as follows: 
