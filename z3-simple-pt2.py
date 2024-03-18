@@ -1,57 +1,88 @@
 from z3 import *
 
+def getStateSpace(s, x, x2, cur_next_dict):
+    # Variables to track the minimum and maximum values of x2 found so far
+    min_val = float('inf')  # Initialize to positive infinity
+    max_val = float('-inf') # Initialize to negative infinity
 
-# return constraints defined on next state variables
-def get_next_state(m, cur_var_list, nxt_var_list):
-    print("Model: ", m)
-    next_state = {}
-    for var in nxt_var_list:
-        next_state[var] = m[var]
-    return next_state
+    # Main loop to dynamically adjust bounds based on found values
+    iterations = 0
+    max_iterations = 1000  # Prevent infinite loops
+    while iterations < max_iterations:
+        if iterations > 0:  # From the second iteration onwards, add bounds constraints
+            s.push()  # Create a new scope for the temporary constraint
+            s.add(Or(x2 < min_val, x2 > max_val))  # Add updated bounds constraint
 
+        result = s.check()
+        if result == sat:
+            m = s.model()
+            x2_val = m[x2].as_long()
+            cur_next_dict[f"x: {m[x].as_long()}"] = f"x2: {m[x2].as_long()}"
+            
+            # Update bounds
+            min_val = min(min_val, x2_val)
+            max_val = max(max_val, x2_val)
+            
+            # Display updated bounds
+            print(f"Iteration {iterations}: Model found with x2 = {x2_val}")
+            print(f"Updated bounds are [{min_val}, {max_val}]")
+            
+            if iterations > 0:  # Pop the temporary bounds constraint after processing
+                s.pop()
 
-# declare current state variables
-cur_var_list = []
-x = Int('x')
-cur_var_list.append(x)
-
-
-# declare next state variables
-nxt_var_list = []
-x2 = Int('x2')
-nxt_var_list.append(x2)
+            iterations += 1
+        else:
+            if iterations > 0:  # Ensure to pop if the last check added a constraint
+                s.pop()
+            print("No further solutions found within the defined constraints.")
+            break
+        #print(s)
+    if iterations == max_iterations:
+        print("Reached maximum iterations.")
 
 
 s = Solver()
 
+x = Int('x')
+x2 = Int('x2')
 
-# create initial state constraints
-s.add(x <= 200, 0 <= x)
+# Creates program id (pid) and program counter (pc) and program counter next (pc_next)
+pid = Int('pid')
+pc = Int('pc')
+pc2 = Int('pc_next')
 
+# Makes a dict with x as keys and x2 as values
+cur_next_dict = {}
 
-# create transition relations
-inc = And((x < 200), (x2 == x + 1))
-dec = And((x > 0), (x2 == x - 1))
-res = And((x == 200), (x2 == 0))
-s.add(Or(inc, dec, res))
+# Define initial state constraints
+s.add(And(x >= 0, x <= 200))
 
+# Constrains pID, pc, and pc2
+s.add(2 <= pc, 4 >= pc)
+s.add(1 <= pid, 3 >= pid)
+s.add(2 <= pc2, 4 >= pc2)
 
+# Increment operation conditions
+inc_condition = And(pid == 1, pc == 2, x < 200)
+# Decrement operation conditions
+dec_condition = And(pid == 2, pc == 2, x > 0)
+# Reset operation conditions
+reset_condition = And(pid == 3, pc == 2, x == 200)  # Assuming reset has a condition to not be 0 for demonstration
 
+# Applying operation using nested if statements
+operation_effect = If(inc_condition, x2 == x + 1, If(dec_condition, x2 == x - 1, If(reset_condition, x2 == 0, x2 == x)))
 
-next_state_set = None
-count = 0 # For keeping track of index
+# Ensures pc cycles through 2-4 sequentially
+pc_update = If(pc == 4, pc2 == 2, pc2 == pc + 1)
 
+# Adding operation and pc transition conditions to the solver
+s.add(operation_effect, pc_update)
 
-while s.check() == sat:
-    m = s.model()
+# Example of ensuring a specific process id and starting pc
+#s.add(Or(x2 == x + 1, x2 == x - 1, And(x == 200, x2 == 0)))
 
-    # create dict nxt_st using get_next_state
-    nxt_st = get_next_state(m, cur_var_list, nxt_var_list)
-    nxt_st_z3 = (nxt_var_list[count] == nxt_st[nxt_var_list[count]])
+# starting
 
-    s.add(Not(nxt_st_z3))
+getStateSpace(s, x, x2, cur_next_dict)
 
-    if next_state_set is None:
-        next_state_set = nxt_st_z3
-    else:
-        next_state_set = Or(next_state_set, nxt_st_z3)
+#print(cur_next_dict)
