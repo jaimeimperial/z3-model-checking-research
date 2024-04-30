@@ -19,7 +19,8 @@ inc_transition = And(
     pc2_nxt==pc2,
     pc3_nxt==pc3,
     Or(
-        And(pc1 == 0, x < 200, x_nxt == x+1, pc1_nxt == pc1),
+        And(pc1 == 0, x < 200,  pc1_nxt == 1),
+        And(pc1 == 1, x_nxt == x+1,  pc1_nxt == 0),
         And(pc1 == 0, x >= 200, x_nxt == x,  pc1_nxt == pc1)),
     )
 
@@ -29,7 +30,8 @@ dec_transition = And(
     pc1_nxt==pc1,
     pc3_nxt==pc3,
     Or(
-        And(pc2 == 0, x > 0, x_nxt == x-1, pc2_nxt == pc2),
+        And(pc2 == 0, x > 0, pc2_nxt == 1),
+        And(pc2 == 1, x_nxt == x-1, pc2_nxt == 0),
         And(pc2 == 0, x <= 0, x_nxt == x, pc2_nxt == pc2)),
     )
 
@@ -38,7 +40,8 @@ reset_transition = And(
     pid == 3,
     pc1_nxt==pc1,
     pc2_nxt==pc2,
-    And(pc3 == 0, x == 200, x_nxt == 0, pc3_nxt == pc3),
+    And(pc3 == 0, x == 200, pc3_nxt == 1),
+    And(pc3 == 1, x_nxt == 0, pc3_nxt == 0),
     )
 
 
