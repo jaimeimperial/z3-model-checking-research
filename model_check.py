@@ -30,7 +30,7 @@ class FrameClass:
                 self.solver.add(var >= min_val, var <= max_val)
 
             # Check if the property holds within these constraints
-            if self.solver.check(self.property) == sat:
+            if self.solver.check(Not(self.property)) == sat:
                 return False 
             else:
                 return True
@@ -46,7 +46,7 @@ class FrameClass:
             if self.CheckFrameEqual(cur_frame, nxt_frame):
                 return
 
-            cur_frame = self.rename_frame(nxt_frame)
+            cur_frame = self.RenameFrame(nxt_frame)
             if self.CheckProperty( self.frames[-1]) is False:
                 return
             self.AddFrame(cur_frame)
@@ -75,13 +75,30 @@ class FrameClass:
             (cur_min_val, cur_max_val) = cur_frame[cur_var]
             cur_state = And(cur_state, cur_var >= cur_min_val, cur_var <= cur_max_val)
 
-        if self.solver.check(cur_state) == sat:
+        # Iteratively call solver on cur_state with nxt_state_z3 blocked 
+        # until new next state can be found
+        nxt_state_z3 = False
+        nxt_state_dict = {}
+        iterations = 0
+        while self.solver.check(cur_state, Not(nxt_state_z3)) == sat:
+            if iterations == 1:
+                break
             m = self.solver.model()
+            print(m)
+            nxt_state_dict = {} 
 
             for cur_var, nxt_var in zip(self.cur_var_list, self.nxt_var_list):
                 nxt_val = m[nxt_var].as_long()
                 cur_min_val, cur_max_val = cur_frame[cur_var]
-
-                self.nxt_state_dict[nxt_var] = (min(nxt_val, cur_min_val), max(cur_max_val, nxt_val))
-
-        return self.nxt_state_dict
+                nxt_min_val = min(nxt_val, cur_min_val)
+                nxt_max_val = max(cur_max_val, nxt_val)
+                nxt_state_dict[nxt_var] = (nxt_min_val, nxt_max_val)
+                nxt_state_z3 = And(nxt_state_z3, Or(nxt_var >= nxt_min_val, nxt_var <= nxt_max_val))
+                    
+                print(cur_state, Not(nxt_state_z3))
+                #print(nxt_state_dict)
+            
+            #print(nxt_state_z3)
+            #print(nxt_state_dict)
+            iterations += 1
+        return nxt_state_dict

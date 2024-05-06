@@ -19,7 +19,7 @@ inc_transition = And(
     pc2_nxt==pc2,
     pc3_nxt==pc3,
     Or(
-        And(pc1 == 0, x < 200,  pc1_nxt == 1),
+        And(pc1 == 0, x < 200, x_nxt == x, pc1_nxt == 1),
         And(pc1 == 1, x_nxt == x+1,  pc1_nxt == 0),
         And(pc1 == 0, x >= 200, x_nxt == x,  pc1_nxt == pc1)),
     )
@@ -30,7 +30,7 @@ dec_transition = And(
     pc1_nxt==pc1,
     pc3_nxt==pc3,
     Or(
-        And(pc2 == 0, x > 0, pc2_nxt == 1),
+        And(pc2 == 0, x > 0, x_nxt == x, pc2_nxt == 1),
         And(pc2 == 1, x_nxt == x-1, pc2_nxt == 0),
         And(pc2 == 0, x <= 0, x_nxt == x, pc2_nxt == pc2)),
     )
@@ -40,9 +40,11 @@ reset_transition = And(
     pid == 3,
     pc1_nxt==pc1,
     pc2_nxt==pc2,
-    And(pc3 == 0, x == 200, pc3_nxt == 1),
-    And(pc3 == 1, x_nxt == 0, pc3_nxt == 0),
+    Or(
+        And(pc3 == 0, x == 200, x_nxt == x, pc3_nxt == 1),
+        And(pc3 == 1, x_nxt == 0, pc3_nxt == 0),
     )
+)
 
 
 # Creating class called frameClass1 and inserting variables into cur_var_list and nxt_var_list
@@ -53,14 +55,15 @@ frameClass1 = FrameClass([x, pid, pc1, pc2, pc3],[x_nxt, pid, pc1_nxt, pc2_nxt, 
 frameClass1.solver.add(pc1 == 0)
 frameClass1.solver.add(pc2 == 0)
 frameClass1.solver.add(pc3 == 0)
-frameClass1.solver.add(And(x >= 0, x <= 200))
+frameClass1.solver.add(And(x >= -10, x <= 210))
+frameClass1.solver.add(And(x_nxt >= -10, x_nxt <= 210))
 frameClass1.solver.add(1 <= pid, 3 >= pid)
 
 
 # Adding state transitions to the solver
 frameClass1.solver.add(Or(inc_transition, dec_transition, reset_transition))
 
-cur_frame = {x : (0, 200),
+cur_frame = {x : (0, 0),
             pid: (1, 3),
             pc1 : (0, 0),
             pc2 : (0, 0),
@@ -70,3 +73,5 @@ cur_frame = {x : (0, 200),
 frameClass1.AddFrame(cur_frame)
 frameClass1.AddProperty(And(x >= 0, x <= 200))
 frameClass1.DoReachability()
+
+
