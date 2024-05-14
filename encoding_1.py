@@ -57,7 +57,7 @@ frameClass1.solver.add(1 <= pid, 3 >= pid)
 # Adding state transitions to the solver
 frameClass1.solver.add(Or(inc_transition, dec_transition, reset_transition))
 
-cur_frame = {x : (0, 200),
+cur_frame = {x : (0, 0),
             pid: (1, 3),
             pc1 : (0, 0),
             pc2 : (0, 0),
