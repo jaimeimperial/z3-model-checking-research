@@ -6,6 +6,7 @@ x_nxt = Int('x_nxt')
 
 # Creates program id (pid) and program counter (pc) and program counter next (pc_next)
 pid = Int('pid')
+pid_nxt = Int('pid_nxt')
 pc1 = Int('pc1')
 pc1_nxt = Int('pc1_next')
 pc2 = Int('pc2')
@@ -48,17 +49,17 @@ reset_transition = And(
 
 
 # Creating class called frameClass1 and inserting variables into cur_var_list and nxt_var_list
-frameClass1 = FrameClass([x, pid, pc1, pc2, pc3],[x_nxt, pid, pc1_nxt, pc2_nxt, pc3_nxt])
-
+frameClass1 = FrameClass([x, pid, pc1, pc2, pc3],[x_nxt, pid_nxt, pc1_nxt, pc2_nxt, pc3_nxt])
 
 # Define initial state constraints
-frameClass1.solver.add(pc1 == 0)
-frameClass1.solver.add(pc2 == 0)
-frameClass1.solver.add(pc3 == 0)
 frameClass1.solver.add(And(x >= -10, x <= 210))
 frameClass1.solver.add(And(x_nxt >= -10, x_nxt <= 210))
 frameClass1.solver.add(1 <= pid, 3 >= pid)
+frameClass1.solver.add(1 <= pid_nxt, 3 >= pid_nxt)
 
+""" if frameClass1.solver.check() == sat:
+    print(frameClass1.solver.model())
+exit() """
 
 # Adding state transitions to the solver
 frameClass1.solver.add(Or(inc_transition, dec_transition, reset_transition))
@@ -73,5 +74,4 @@ cur_frame = {x : (0, 0),
 frameClass1.AddFrame(cur_frame)
 frameClass1.AddProperty(And(x >= 0, x <= 200))
 frameClass1.DoReachability()
-
-
+print(frameClass1.solver)
