@@ -81,15 +81,17 @@ class FrameClass:
         nxt_state_dict = {}
         nxt_state_z3 = False
         iterations = 0
-        
 
+        print(cur_state)
+        print(nxt_state_z3)
         while self.solver.check(cur_state, Not(nxt_state_z3)) == sat:
-            if iterations == 1:
+            if iterations == 10:
                 break
             m = self.solver.model()
+            print(m)
             print("here")
-            
-            for cur_var, nxt_var in zip(self.cur_var_list, self.nxt_var_list):
+
+            for nxt_var in self.nxt_var_list:
                 nxt_val = m[nxt_var].as_long()
                 if nxt_var in nxt_state_dict:
                     # Update min and max values
@@ -100,14 +102,18 @@ class FrameClass:
                 else:
                     # Initialize min and max values
                     nxt_state_dict[nxt_var] = (nxt_val, nxt_val)
-
+            print(nxt_state_dict)
 
             # generate Z3 constraint for nxt_state_dict
-            for cur_var, nxt_var in zip(self.cur_var_list, self.nxt_var_list):
+            nxt_state_z3 = False
+            for nxt_var in self.nxt_var_list:
                 nxt_min_val, nxt_max_val = nxt_state_dict[nxt_var]
+                print(nxt_min_val, '   ', nxt_max_val)
                 if nxt_state_z3 == False:
-                    nxt_state_z3 = And(cur_var >= nxt_min_val, cur_var <= nxt_max_val)
-                nxt_state_z3 = And(nxt_state_z3, And(cur_var >= nxt_min_val, cur_var <= nxt_max_val))
+                    nxt_state_z3 = And(nxt_var >= nxt_min_val, nxt_var <= nxt_max_val)
+                nxt_state_z3 = And(nxt_state_z3, And(nxt_var >= nxt_min_val, nxt_var <= nxt_max_val))
 
             iterations += 1
+            print(simplify(nxt_state_z3))
+            print('---')
         return nxt_state_dict
