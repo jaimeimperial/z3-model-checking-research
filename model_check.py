@@ -82,14 +82,14 @@ class FrameClass:
         nxt_state_z3 = False
         iterations = 0
 
-        print(cur_state)
-        print(nxt_state_z3)
+        #print(cur_state)
+        #print(nxt_state_z3)
         while self.solver.check(cur_state, Not(nxt_state_z3)) == sat:
             if iterations == 10:
                 break
             m = self.solver.model()
-            print(m)
-            print("here")
+            #print(m)
+            #print("here")
 
             for nxt_var in self.nxt_var_list:
                 nxt_val = m[nxt_var].as_long()
@@ -102,18 +102,28 @@ class FrameClass:
                 else:
                     # Initialize min and max values
                     nxt_state_dict[nxt_var] = (nxt_val, nxt_val)
-            print(nxt_state_dict)
+            #print(nxt_state_dict)
 
             # generate Z3 constraint for nxt_state_dict
             nxt_state_z3 = False
             for nxt_var in self.nxt_var_list:
                 nxt_min_val, nxt_max_val = nxt_state_dict[nxt_var]
-                print(nxt_min_val, '   ', nxt_max_val)
+                #print(nxt_min_val, '   ', nxt_max_val)
                 if nxt_state_z3 == False:
                     nxt_state_z3 = And(nxt_var >= nxt_min_val, nxt_var <= nxt_max_val)
                 nxt_state_z3 = And(nxt_state_z3, And(nxt_var >= nxt_min_val, nxt_var <= nxt_max_val))
 
             iterations += 1
-            print(simplify(nxt_state_z3))
-            print('---')
+            #print(simplify(nxt_state_z3))
+            #print('---')
         return nxt_state_dict
+    
+    #def ITE():
+        
+    def Compose(self, pid, encoding_list):
+        size = len(encoding_list)
+        composition = And(1 <= pid, pid <= size)
+        for index in range(size):
+            composition = And(composition, pid == index + 1, encoding_list[index])
+        return composition
+    
