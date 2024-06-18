@@ -1,0 +1,51 @@
+from z3 import *
+from model_check import FrameClass
+import encoding_functions
+
+'''
+Euclidean Algorithm for finding the gcd(a, b)
+Algorithm is gcd(a,b)
+'''
+a = Int('a')
+a_next = Int('a_next')
+b = Int('b')
+b_next = Int('b_next')
+pc = Int('pc')
+pc_next = Int('pc_next')
+pid = Int('pid')
+
+# Transition Relation
+#transition = [encoding_functions.ITE(a != 0, [pc, pc_next], a_next == b % a, And(a_next == a, b_next == a))]
+transition = [Or(
+    And(pc == 0, a != 0, pc_next == 1),
+    And(pc == 1, a_next == b % a, b_next == a, pc_next == 0),
+    And(pc == 0, a == 0, a_next == a, b_next == b, pc_next == pc)
+)]
+
+frameClass1 = FrameClass([a, b, pid, pc],[a_next, b_next, pid, pc_next])
+
+frameClass1.solver.add(And(a > 0, a <= 15))
+frameClass1.solver.add(And(a_next > 0, a_next <= 15))
+frameClass1.solver.add(And(b > 0, b <= 15))
+frameClass1.solver.add(And(b_next > 0, b_next <= 15))
+
+cur_frame = {a : (0,0),
+            b : (0,0),
+            pid : (1,1),
+            pc : (0,0),
+            }
+
+frameClass1.AddFrame(cur_frame)
+
+'''
+property: gcd(a,b) = d, a/d = 1 and b/d = 1
+'''
+
+print("----------------")
+print("Normal Encoding")
+encoding = encoding_functions.Compose(pid, transition)
+frameClass1.solver.add(encoding)
+print(simplify(encoding))
+print("----------------")
+
+frameClass1.DoReachability()

@@ -21,6 +21,9 @@ class FrameClass:
         self.property = prop
 
     def CheckProperty(self, cur_frame):
+        if self.property == None:
+            print("Error: No Property added")
+            return
         self.solver.push()
         try:
             # Add the current frame's constraints to the solver
@@ -55,6 +58,9 @@ class FrameClass:
 
 
     def CheckFrameEqual(self, cur_frame, nxt_frame):
+        if nxt_frame == {} or cur_frame == {}:
+            print("Error: Frame empty - CheckFrameEqual")
+            return
         # Compares each respective variable in cur_state_dict and nxt_state_dict. If != breaks loop and frame_eq is false
         for cur_var, nxt_var in zip(self.cur_var_list, self.nxt_var_list):
             if cur_frame[cur_var] != nxt_frame[nxt_var]:
@@ -63,6 +69,9 @@ class FrameClass:
         return True
 
     def RenameFrame(self, nxt_frame):
+        if nxt_frame == {}:
+            print("Error: Frame empty - RenameFrame")
+            return
         new_state_dict = {}
         for cur_var, nxt_var in zip(self.cur_var_list, self.nxt_var_list):
             new_state_dict[cur_var] = nxt_frame[nxt_var]
@@ -75,8 +84,12 @@ class FrameClass:
         # cur_state is all ranges of vars
         for cur_var in self.cur_var_list:
             (cur_min_val, cur_max_val) = cur_frame[cur_var]
-            cur_state = And(cur_state, And(cur_var >= cur_min_val, cur_var <= cur_max_val))
+            cur_state = And(cur_state, cur_var >= cur_min_val, cur_var <= cur_max_val)
 
+        # print("----------------")
+        # print(cur_state)
+        # print("----------------")
+        
         # Iteratively call solver on cur_state with nxt_state_z3 blocked until new next state can be found
         nxt_state_dict = {}
         nxt_state_z3 = False
@@ -84,30 +97,34 @@ class FrameClass:
 
         #print(cur_state)
         #print(nxt_state_z3)
+
         while self.solver.check(cur_state, Not(nxt_state_z3)) == sat:
             if iterations == 10:
                 break
             m = self.solver.model()
-            #print(m)
+            print("----------------")
+            print(m)
+            print("----------------")
+            
             #print("here")
 
             for nxt_var in self.nxt_var_list:
                 nxt_val = m[nxt_var].as_long()
-                if nxt_var in nxt_state_dict:
+                if nxt_var in self.nxt_state_dict:
                     # Update min and max values
-                    nxt_min_val, nxt_max_val = nxt_state_dict[nxt_var]
+                    nxt_min_val, nxt_max_val = self.nxt_state_dict[nxt_var]
                     nxt_min_val = min(nxt_val, nxt_min_val)
                     nxt_max_val = max(nxt_val, nxt_max_val)
-                    nxt_state_dict[nxt_var] = (nxt_min_val, nxt_max_val)
+                    self.nxt_state_dict[nxt_var] = (nxt_min_val, nxt_max_val)
                 else:
                     # Initialize min and max values
-                    nxt_state_dict[nxt_var] = (nxt_val, nxt_val)
+                    self.nxt_state_dict[nxt_var] = (nxt_val, nxt_val)
             #print(nxt_state_dict)
 
             # generate Z3 constraint for nxt_state_dict
             nxt_state_z3 = False
             for nxt_var in self.nxt_var_list:
-                nxt_min_val, nxt_max_val = nxt_state_dict[nxt_var]
+                nxt_min_val, nxt_max_val = self.nxt_state_dict[nxt_var]
                 #print(nxt_min_val, '   ', nxt_max_val)
                 if nxt_state_z3 == False:
                     nxt_state_z3 = And(nxt_var >= nxt_min_val, nxt_var <= nxt_max_val)
@@ -116,14 +133,5 @@ class FrameClass:
             iterations += 1
             #print(simplify(nxt_state_z3))
             #print('---')
+            nxt_state_dict = self.nxt_state_dict
         return nxt_state_dict
-    
-    #def ITE():
-        
-    def Compose(self, pid, encoding_list):
-        size = len(encoding_list)
-        composition = And(1 <= pid, pid <= size)
-        for index in range(size):
-            composition = And(composition, pid == index + 1, encoding_list[index])
-        return composition
-    
