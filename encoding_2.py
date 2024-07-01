@@ -1,5 +1,6 @@
 from z3 import *
 from model_check import FrameClass
+from encoding_functions import *
 
 x = Int('x')
 x_nxt = Int('x_nxt')
@@ -48,8 +49,8 @@ reset_transition = And(
 frameClass1 = FrameClass([x, pid, pc1, pc2, pc3],[x_nxt, pid, pc1_nxt, pc2_nxt, pc3_nxt])
 
 # Define initial state constraints
-frameClass1.solver.add(And(x >= -10, x <= 210))
-frameClass1.solver.add(And(x_nxt >= -10, x_nxt <= 210))
+frameClass1.solver.add(And(x >= 0, x <= 200))
+frameClass1.solver.add(And(x_nxt >= -10, x_nxt <= 200))
 
 """ if frameClass1.solver.check() == sat:
     print(frameClass1.solver.model())
@@ -66,12 +67,12 @@ cur_frame = {x : (0, 0),
             }
 
 transitions = [inc_transition, dec_transition, reset_transition]
-encoding = frameClass1.Compose(pid, transitions)
+encoding = Compose(pid, transitions)
 frameClass1.solver.add(encoding)
 print(frameClass1.solver)
 
 
 frameClass1.AddFrame(cur_frame)
-frameClass1.AddProperty(And(x >= 0, x <= 200))
+#frameClass1.AddProperty(And(x >= 0, x <= 200))
 frameClass1.DoReachability()
 #print(frameClass1.solver)

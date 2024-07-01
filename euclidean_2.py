@@ -5,16 +5,26 @@ import encoding_functions
 '''
 Euclidean Algorithm for finding the gcd(a, b)
 Algorithm is gcd(a,b)
+r = a % b
+a = b
+b = r
 '''
 a = Int('a')
 a_next = Int('a_next')
 b = Int('b')
+r = Int('r')
 b_next = Int('b_next')
 pc = Int('pc')
 pc_next = Int('pc_next')
 pid = Int('pid')
 
+m = Int('m')
+n = Int('n')
+
 # Transition Relation
+# C = b > 0
+# a1 = r == a % b, a_next == b, b_next == r, pc_next == 0
+# a2 = a_next == a, b_next == b, pc_next == 0
 #transition = [encoding_functions.ITE(a != 0, [pc, pc_next], a_next == b % a, And(a_next == a, b_next == a))]
 transition = [Or(
     And(pc == 0, a != 0, pc_next == 1),
