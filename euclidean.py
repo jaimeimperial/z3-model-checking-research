@@ -59,5 +59,5 @@ print("----------------")
 
 
 
-#frameClass1.AddProperty(And(r == 0, a_next == (m*a) + (n*b)))
+frameClass1.AddProperty(Not(And(r == 0, b_next == 0, a_next == (m*a) + (n*b), m > 0, n > 0, b > 0)))
 frameClass1.DoReachability()

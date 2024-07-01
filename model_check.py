@@ -23,29 +23,32 @@ class FrameClass:
         self.property = prop
 
     def CheckProperty(self, cur_frame):
+        #property_solver = Solver()
         if self.property == None:
             print("Error: No Property added")
             return
         self.solver.push()
-        try:
-            # Add the current frame's constraints to the solver
-            for var, (min_val, max_val) in cur_frame.items():
-                self.solver.add(var >= min_val, var <= max_val)
+        # Add the current frame's constraints to the solver
+        for var, (min_val, max_val) in cur_frame.items():
+            self.solver.add(var >= min_val, var <= max_val)
 
-            # Check if the property holds within these constraints
-            if self.solver.check(Not(self.property)) == sat:
-                return False
-            else:
-                return True
-        finally:
+        # Check if the property holds within these constraints
+        if self.solver.check(Not(self.property)) == sat:
+            print('Property Violation')
+            print(self.solver.model())
             self.solver.pop()
+            return False
+        else:
+            print("Property Passed")
+            self.solver.pop()
+            return True
+
 
     def DoReachability(self):
         if self.CheckProperty(self.frames[-1]) is False:
-            return
+            print('')
         while True:
             cur_frame = self.frames[-1]
-            print("GET NEXT FRAME CALLED")
             nxt_frame = self.GetNextFrame(cur_frame)
             if nxt_frame == {}:
                 print("Error: Frame empty - GetNextFrame")
@@ -53,8 +56,8 @@ class FrameClass:
             if self.CheckFrameEqual(cur_frame, nxt_frame):
                 break
             cur_frame = self.RenameFrame(nxt_frame)
-            if self.CheckProperty( self.frames[-1]) is False:
-                return
+            if self.CheckProperty(self.frames[-1]) is False:
+                print('')
             self.AddFrame(cur_frame)
             print("-----------------")
 
@@ -100,10 +103,10 @@ class FrameClass:
         nxt_state_dict = {}
         nxt_state_z3 = False
         iterations = 0
-        print("----------------")
-        print("Next State Dict")
-        print(self.nxt_state_dict)
-        print("----------------")
+        # print("----------------")
+        # print("Next State Dict")
+        # print(self.nxt_state_dict)
+        # print("----------------")
         while self.solver.check(cur_state, Not(nxt_state_z3)) == sat:
             if iterations == 1000:
                 exit()
