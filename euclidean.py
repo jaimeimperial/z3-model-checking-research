@@ -43,8 +43,8 @@ frameClass1.solver.add(And(b > 0, b <= 15))
 frameClass1.solver.add(r == a % b)
 frameClass1.solver.add(And(b_next >= 0, b_next <= 15))
 
-cur_frame = {a : (12,12),
-            b : (10,10),
+cur_frame = {a : (1,1),
+            b : (1,1),
             pid : (1,1),
             }
 
@@ -54,7 +54,7 @@ frameClass1.solver.add(encoding)
 
 print("----------------")
 print("ITE Encoding")
-print(encoding)
+print(frameClass1.solver)
 print("----------------")
 
 

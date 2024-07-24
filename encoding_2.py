@@ -39,8 +39,7 @@ reset_transition = And(
     pc1_nxt==pc1,
     pc2_nxt==pc2,
     Or(
-        And(pc3 == 0, x == 200, x_nxt == x, pc3_nxt == 1),
-        And(pc3 == 1, x_nxt == 0, pc3_nxt == 0),
+        And(pc3 == 0, x == 200, x_nxt == 0, pc3_nxt == 1),
     )
 )
 
@@ -49,7 +48,7 @@ reset_transition = And(
 frameClass1 = FrameClass([x, pid, pc1, pc2, pc3],[x_nxt, pid, pc1_nxt, pc2_nxt, pc3_nxt])
 
 # Define initial state constraints
-frameClass1.solver.add(And(x >= 0, x <= 200))
+frameClass1.solver.add(And(x > 0, x <= 200))
 frameClass1.solver.add(And(x_nxt >= -10, x_nxt <= 200))
 
 """ if frameClass1.solver.check() == sat:
@@ -59,7 +58,7 @@ exit() """
 # Adding state transitions to the solver
 #frameClass1.solver.add(Or(inc_transition, dec_transition, reset_transition))
 
-cur_frame = {x : (0, 0),
+cur_frame = {x : (1, 1),
             pid: (1, 3),
             pc1 : (0, 0),
             pc2 : (0, 0),
@@ -73,6 +72,6 @@ print(frameClass1.solver)
 
 
 frameClass1.AddFrame(cur_frame)
-#frameClass1.AddProperty(And(x >= 0, x <= 200))
+frameClass1.AddProperty(And(x_nxt >= 0, x_nxt <= 200))
 frameClass1.DoReachability()
 #print(frameClass1.solver)

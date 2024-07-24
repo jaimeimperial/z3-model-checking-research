@@ -34,7 +34,7 @@ class FrameClass:
 
         # Check if the property holds within these constraints
         if self.solver.check(Not(self.property)) == sat:
-            print('Property Violation')
+            print('Property Violation') 
             print(self.solver.model())
             self.solver.pop()
             return False
@@ -49,6 +49,7 @@ class FrameClass:
             print('')
         while True:
             cur_frame = self.frames[-1]
+            print(cur_frame)
             nxt_frame = self.GetNextFrame(cur_frame)
             if nxt_frame == {}:
                 print("Error: Frame empty - GetNextFrame")
@@ -56,7 +57,7 @@ class FrameClass:
             if self.CheckFrameEqual(cur_frame, nxt_frame):
                 break
             cur_frame = self.RenameFrame(nxt_frame)
-            if self.CheckProperty(self.frames[-1]) is False:
+            if self.CheckProperty(cur_frame) is False:
                 print('')
             self.AddFrame(cur_frame)
             print("-----------------")
@@ -108,7 +109,7 @@ class FrameClass:
         # print(self.nxt_state_dict)
         # print("----------------")
         while self.solver.check(cur_state, Not(nxt_state_z3)) == sat:
-            if iterations == 1000:
+            if iterations == 500:
                 exit()
             m = self.solver.model()
             print("----------------")
@@ -145,7 +146,7 @@ class FrameClass:
             # print(simplify(nxt_state_z3))
             # print('----------------------------')
             
-            iterations += 1
+            iterations += 1 
             #print(simplify(nxt_state_z3))
             #print('---')
             nxt_state_dict = self.nxt_state_dict
