@@ -39,7 +39,9 @@ reset_transition = And(
     pc1_nxt==pc1,
     pc2_nxt==pc2,
     Or(
-        And(pc3 == 0, x == 200, x_nxt == 0, pc3_nxt == 1),
+        And(pc3 == 0, x == 200, x_nxt == x, pc3_nxt == 1),
+        And(pc3 == 1, x_nxt == 0, pc3_nxt == 0),
+        And(pc3 == 0, x != 200, x_nxt == x, pc3_nxt == 1),
     )
 )
 
@@ -67,6 +69,7 @@ cur_frame = {x : (1, 1),
 
 transitions = [inc_transition, dec_transition, reset_transition]
 encoding = Compose(pid, transitions)
+print(simplify(encoding))
 frameClass1.solver.add(encoding)
 print(frameClass1.solver)
 

@@ -9,6 +9,7 @@ class FrameClass:
         self.nxt_state_dict = {}
         self.property = None
         self.solver = Solver()
+        self.iterations = 0
 
     def AddZ3constr(self, constr):
         self.solver.add(constr)
@@ -54,8 +55,8 @@ class FrameClass:
             if nxt_frame == {}:
                 print("Error: Frame empty - GetNextFrame")
                 exit()
-            if self.CheckFrameEqual(cur_frame, nxt_frame):
-                break
+            # if self.CheckFrameEqual(cur_frame, nxt_frame):
+            #     break
             cur_frame = self.RenameFrame(nxt_frame)
             if self.CheckProperty(cur_frame) is False:
                 print('')
@@ -103,13 +104,12 @@ class FrameClass:
         # Iteratively call solver on cur_state with nxt_state_z3 blocked until new next state can be found
         nxt_state_dict = {}
         nxt_state_z3 = False
-        iterations = 0
         # print("----------------")
         # print("Next State Dict")
         # print(self.nxt_state_dict)
         # print("----------------")
         while self.solver.check(cur_state, Not(nxt_state_z3)) == sat:
-            if iterations == 500:
+            if self.iterations == 410:
                 exit()
             m = self.solver.model()
             print("----------------")
@@ -146,7 +146,7 @@ class FrameClass:
             # print(simplify(nxt_state_z3))
             # print('----------------------------')
             
-            iterations += 1 
+            self.iterations += 1 
             #print(simplify(nxt_state_z3))
             #print('---')
             nxt_state_dict = self.nxt_state_dict

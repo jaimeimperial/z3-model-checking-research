@@ -28,9 +28,10 @@ n = Int('n')
 # a2 = a_next == a, b_next == b, pc_next == 0
 #transition = [encoding_functions.ITE(a != 0, [pc, pc_next], a_next == b % a, And(a_next == a, b_next == a))]
 transition = [Or(
-    And(pc == 0, b > 0, pc_next == 1),
+    And(pc == 0, b != 0, pc_next == 1),
     And(pc == 1, r == a % b, a_next == b, b_next == r, pc_next == 0),
-    And(pc == 0, b <= 0, a_next == a, b_next == b, pc_next == pc)
+    And(pc == 0, b == 0, pc_next == 2),
+    And(pc == 2, a_next == a, b_next == b, pc_next == 2),
 )]
 
 frameClass1 = FrameClass([a, b, pid, pc],[a_next, b_next, pid, pc_next])
@@ -42,8 +43,8 @@ frameClass1.solver.add(And(b_next > 0, b_next <= 15))
 frameClass1.solver.add(And(c > 0, c <= b_next))
 
 
-cur_frame = {a : (1,1),
-            b : (1,1),
+cur_frame = {a : (15,15),
+            b : (15,15),
             pid : (1,1),
             pc : (0,0),
             }
