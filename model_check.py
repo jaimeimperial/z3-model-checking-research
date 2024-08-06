@@ -9,7 +9,6 @@ class FrameClass:
         self.nxt_state_dict = {}
         self.property = None
         self.solver = Solver()
-        self.iterations = 0
 
     def AddZ3constr(self, constr):
         self.solver.add(constr)
@@ -28,40 +27,53 @@ class FrameClass:
         if self.property == None:
             print("Error: No Property added")
             return
-        self.solver.push()
-        # Add the current frame's constraints to the solver
-        for var, (min_val, max_val) in cur_frame.items():
-            self.solver.add(var >= min_val, var <= max_val)
+    
+        # create a new Z3 solver instance pcheck
+        # create z3 constrints from cur_frame
+        # convert provided negated property to Z3 constraint
+        # add these constraints to solver pcheck,
+        # solve pcheck, if sat, property violate.
 
+        pcheck = Solver()
+        pcheck.push()
+        # Add the current frame's constraints to the empty solver, pcheck
+        for var, (min_val, max_val) in cur_frame.items():
+            pcheck.add(var >= min_val, var <= max_val)
+
+        print(cur_frame)
         # Check if the property holds within these constraints
-        if self.solver.check(Not(self.property)) == sat:
-            print('Property Violation') 
-            print(self.solver.model())
-            self.solver.pop()
+        if pcheck.check(Not(self.property)) == sat:
+            print('Property Violation')
+            print(pcheck.model())
+            pcheck.pop()
             return False
         else:
             print("Property Passed")
-            self.solver.pop()
+            pcheck.pop()
             return True
 
 
     def DoReachability(self):
         if self.CheckProperty(self.frames[-1]) is False:
             print('')
+
+        step = 0
         while True:
+            print("*** Reachability step = ", step)
             cur_frame = self.frames[-1]
             print(cur_frame)
             nxt_frame = self.GetNextFrame(cur_frame)
             if nxt_frame == {}:
                 print("Error: Frame empty - GetNextFrame")
                 exit()
-            # if self.CheckFrameEqual(cur_frame, nxt_frame):
-            #     break
+            if self.CheckFrameEqual(cur_frame, nxt_frame):
+                break
             cur_frame = self.RenameFrame(nxt_frame)
             if self.CheckProperty(cur_frame) is False:
-                print('')
+                return
             self.AddFrame(cur_frame)
             print("-----------------")
+            step += 1
 
         return
 
@@ -90,7 +102,6 @@ class FrameClass:
 
     def GetNextFrame(self, cur_frame):
         cur_state = True
-        print(cur_frame)
         # cur_state is all ranges of vars
         for cur_var in self.cur_var_list:
             (cur_min_val, cur_max_val) = cur_frame[cur_var]
@@ -100,22 +111,21 @@ class FrameClass:
         # print("Current State: ")
         # print(simplify(cur_state))
         # print("----------------")
-        
+    
         # Iteratively call solver on cur_state with nxt_state_z3 blocked until new next state can be found
-        nxt_state_dict = {}
+        nxt_state_dict = {} # initialize it to be the same as the current frame; this function then aims to find new states that are not in the current frame
         nxt_state_z3 = False
+        iterations = 0
         # print("----------------")
         # print("Next State Dict")
         # print(self.nxt_state_dict)
         # print("----------------")
         while self.solver.check(cur_state, Not(nxt_state_z3)) == sat:
-            if self.iterations == 410:
-                exit()
             m = self.solver.model()
-            print("----------------")
+            print("-- model from Z3  ------")
             print(m)
             print("----------------")
-            
+        
             for nxt_var in self.nxt_var_list:
                 # print(nxt_var)
                 # print(self.nxt_state_dict)
@@ -130,7 +140,7 @@ class FrameClass:
                     # Initialize min and max values
                     print('here')
                     self.nxt_state_dict[nxt_var] = (nxt_val, nxt_val)
-            #print(nxt_state_dict)
+            # print(self.nxt_state_dict)
 
             # generate Z3 constraint for nxt_state_dict
             nxt_state_z3 = False
@@ -143,10 +153,15 @@ class FrameClass:
 
             # print('----------------------------')
             # print('nxt_state_z3')
-            # print(simplify(nxt_state_z3))
+            # print(simplify(Not(nxt_state_z3)))
             # print('----------------------------')
-            
-            self.iterations += 1 
+        
+            """ print(simplify(cur_state))
+            print(self.nxt_var_list[0] <0 )
+            print(self.solver)
+            print(self.solver.check(cur_state, self.nxt_var_list[0] <0)) """
+
+            iterations += 1
             #print(simplify(nxt_state_z3))
             #print('---')
             nxt_state_dict = self.nxt_state_dict
